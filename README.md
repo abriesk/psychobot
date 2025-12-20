@@ -25,8 +25,8 @@ Perfect for solo practitioners who want a simple, professional booking flow dire
 
 1. Clone the repo:
    ```bash
-   git clone https://github.com/yourusername/psychotherapy-booking-bot.git
-   cd psychotherapy-booking-bot
+   git clone https://github.com/abriesk/psychobot.git
+   cd psychobot
 2. Create or edit .env file:
    BOT_TOKEN=your_telegram_bot_token_here
    ADMIN_IDS=123456789,987654321  # your Telegram user IDs, comma-separated
