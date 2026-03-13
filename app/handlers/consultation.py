@@ -35,6 +35,10 @@ async def start_consultation(update: Update, context: ContextTypes.DEFAULT_TYPE)
         result = await session.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
         lang = user.language if user else os.getenv('DEFAULT_LANGUAGE', 'ru')
+        if not user:
+            user = User(id=user_id, language=lang)
+            session.add(user)
+            await session.commit()
         settings = await get_settings(session)
     
     context.user_data['lang'] = lang
