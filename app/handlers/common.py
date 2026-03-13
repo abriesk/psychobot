@@ -71,7 +71,7 @@ async def handle_menu_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
-        lang = user.language if user else os.getenv('DEFAULT_LANGUAGE', 'ru')
+        lang = user.language if user else os.getenv('DEFAULT_LANGUAGE')
 
     text = update.message.text
     topic_map = {
