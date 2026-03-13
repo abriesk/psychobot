@@ -68,7 +68,7 @@ def main():
         ]
     )
 
-    # 🔧 NEW: Landing Upload Conversation
+    # ðŸ”§ NEW: Landing Upload Conversation
     landing_upload_conv = ConversationHandler(
         entry_points=[MessageHandler(filters.Regex("^Upload Landing$"), admin.upload_landing_start)],
         states={
@@ -88,7 +88,7 @@ def main():
         ]
     )
 
-    # 🔧 NEW: Price Edit Conversation
+    # ðŸ”§ NEW: Price Edit Conversation
     price_edit_conv = ConversationHandler(
         entry_points=[MessageHandler(filters.Regex("^Edit Prices$"), admin.edit_prices_start)],
         states={
@@ -124,8 +124,8 @@ def main():
     app.add_handler(lang_conv)
     app.add_handler(consult_conv)
     app.add_handler(admin_prop_conv)
-    app.add_handler(landing_upload_conv)  # 🔧 NEW
-    app.add_handler(price_edit_conv)      # 🔧 NEW
+    app.add_handler(landing_upload_conv)  # ðŸ”§ NEW
+    app.add_handler(price_edit_conv)      # ðŸ”§ NEW
     app.add_handler(user_counter_conv)
     
     # Admin commands
@@ -134,7 +134,7 @@ def main():
     app.add_handler(MessageHandler(filters.Regex("^Pending Requests$"), admin.list_pending))
     
     # Admin callbacks
-    app.add_handler(CallbackQueryHandler(admin.admin_callback, pattern="^adm_(view|approve|reject)_"))
+    app.add_handler(CallbackQueryHandler(admin.admin_callback, pattern="^adm_"))
     
     # User negotiation callbacks
     app.add_handler(CallbackQueryHandler(user_negotiation.user_negotiation_yes, pattern="^usr_yes_"))
