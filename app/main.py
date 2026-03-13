@@ -32,6 +32,7 @@ def main():
     
     consult_conv = ConversationHandler(
         entry_points=[MessageHandler(booking_trigger, consultation.start_consultation)],
+        allow_reentry=True,
         states={
             consultation.TYPE_SELECT: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND & ~home_filter, consultation.type_selected)
@@ -68,7 +69,7 @@ def main():
         ]
     )
 
-    # ðŸ”§ NEW: Landing Upload Conversation
+    # 🔧 NEW: Landing Upload Conversation
     landing_upload_conv = ConversationHandler(
         entry_points=[MessageHandler(filters.Regex("^Upload Landing$"), admin.upload_landing_start)],
         states={
@@ -88,7 +89,7 @@ def main():
         ]
     )
 
-    # ðŸ”§ NEW: Price Edit Conversation
+    # 🔧 NEW: Price Edit Conversation
     price_edit_conv = ConversationHandler(
         entry_points=[MessageHandler(filters.Regex("^Edit Prices$"), admin.edit_prices_start)],
         states={
@@ -124,8 +125,8 @@ def main():
     app.add_handler(lang_conv)
     app.add_handler(consult_conv)
     app.add_handler(admin_prop_conv)
-    app.add_handler(landing_upload_conv)  # ðŸ”§ NEW
-    app.add_handler(price_edit_conv)      # ðŸ”§ NEW
+    app.add_handler(landing_upload_conv)  # 🔧 NEW
+    app.add_handler(price_edit_conv)      # 🔧 NEW
     app.add_handler(user_counter_conv)
     
     # Admin commands

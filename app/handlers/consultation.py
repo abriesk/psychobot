@@ -132,15 +132,20 @@ async def problem_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def contacts_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['problem'] = update.message.text
     lang = context.user_data.get('lang', 'ru')
-    
+
+    req_type = context.user_data.get('req_type')
+    if not req_type:
+        await update.message.reply_text(get_text(lang, "error_generic"))
+        return ConversationHandler.END
+
     # Finalize Request
     async with AsyncSessionLocal() as session:
         req = Request(
             user_id=update.effective_user.id,
-            type=context.user_data['req_type'],
-            timezone=context.user_data['timezone'],
-            desired_time=context.user_data['desired_time'],
-            problem=context.user_data['problem'],
+            type=req_type,
+            timezone=context.user_data.get('timezone'),
+            desired_time=context.user_data.get('desired_time'),
+            problem=context.user_data.get('problem'),
             status=RequestStatus.PENDING
         )
         session.add(req)
@@ -181,7 +186,6 @@ async def contacts_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def waitlist_finalize(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = context.user_data.get('lang', 'ru')
-    problem = context.user_data.get('temp_problem', 'No details')
     text = update.message.text
     
     async with AsyncSessionLocal() as session:
