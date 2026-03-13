@@ -143,9 +143,9 @@ async def contacts_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
         req = Request(
             user_id=update.effective_user.id,
             type=req_type,
-            timezone=context.user_data['timezone'],
-            desired_time=context.user_data['desired_time'],
-            problem=context.user_data['problem'],
+            timezone=context.user_data.get('timezone'),
+            desired_time=context.user_data.get('desired_time'),
+            problem=context.user_data.get('problem'),
             status=RequestStatus.PENDING
         )
         session.add(req)
