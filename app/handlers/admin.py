@@ -10,7 +10,7 @@ ADMIN_IDS = [int(x) for x in os.getenv("ADMIN_IDS", "").split(",") if x.strip()]
 
 # 🔧 NEW: Conversation states for admin features
 UPLOAD_TOPIC, UPLOAD_LANG, UPLOAD_FILE = range(3)
-EDIT_PRICE_TYPE, EDIT_PRICE_VALUE = range(2)
+EDIT_PRICE_TYPE, EDIT_PRICE_VALUE = range(3, 5)
 
 # 🔧 CONSTANTS: Available topics and languages
 LANDING_TOPICS = {
@@ -65,10 +65,13 @@ async def admin_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def toggle_availability(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id): return
-    
+
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(Settings).where(Settings.id == 1))
-        st = result.scalar_one()
+        st = result.scalar_one_or_none()
+        if not st:
+            st = Settings(id=1)
+            session.add(st)
         st.availability_on = not st.availability_on
         await session.commit()
         state = "ON" if st.availability_on else "OFF"
@@ -93,24 +96,24 @@ async def list_pending(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         # Send summary first
         await update.message.reply_text(
-            f"?? <b>Pending Requests: {len(reqs)}</b>\n"
+            f"📋 <b>Pending Requests: {len(reqs)}</b>\n"
             f"Showing all requests requiring action...",
             parse_mode="HTML"
         )
-        
+
         # Then send each request individually with slight delay
         import asyncio
         for i, r in enumerate(reqs, 1):
             txt = (
                 f"<b>Request #{i} of {len(reqs)}</b>\n"
-                f"????????????????????\n"
+                f"────────────────────\n"
                 f"<b>ID:</b> {r.id} | <b>UUID:</b> <code>{r.request_uuid}</code>\n"
                 f"<b>Type:</b> {r.type.value}\n"
                 f"<b>Status:</b> {r.status.value}\n"
                 f"<b>Time:</b> {r.desired_time or 'N/A'}\n"
                 f"<b>User:</b> {r.user_id}"
             )
-            btns = [[InlineKeyboardButton("?? Open Details", callback_data=f"adm_view_{r.id}")]]
+            btns = [[InlineKeyboardButton("🔍 Open Details", callback_data=f"adm_view_{r.id}")]]
             await update.message.reply_text(txt, reply_markup=InlineKeyboardMarkup(btns), parse_mode="HTML")
             
             # Small delay to avoid rate limiting (only if more than 3 requests)
@@ -208,52 +211,46 @@ async def upload_lang_selected(update: Update, context: ContextTypes.DEFAULT_TYP
 async def upload_text_received(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle text content and save as landing file"""
     if not update.message.text:
-        await update.message.reply_text("? Please send text content.")
+        await update.message.reply_text("⚠️ Please send text content.")
         return UPLOAD_FILE
-    
+
     content_text = update.message.text
     topic = context.user_data.get('upload_topic')
     lang = context.user_data.get('upload_lang')
-    
+
     # Validate content length (Telegram message limit is 4096 chars)
     if len(content_text) > 4000:
         await update.message.reply_text(
-            "?? Content is too long. Please shorten it to under 4000 characters."
+            "⚠️ Content is too long. Please shorten it to under 4000 characters."
         )
         return UPLOAD_FILE
-    
+
     try:
         # Ensure landings directory exists
         os.makedirs("/app/landings", exist_ok=True)
-        
+
         # Save with standard naming: {topic}_{lang}.html
         file_path = f"/app/landings/{topic}_{lang}.html"
-        
+
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(content_text)
-        
+
         await update.message.reply_text(
-            f"? <b>Landing saved successfully!</b>\n\n"
+            f"✅ <b>Landing saved successfully!</b>\n\n"
             f"Topic: {LANDING_TOPICS[topic]}\n"
             f"Language: {LANGUAGES[lang]}\n"
             f"Length: {len(content_text)} characters",
             parse_mode="HTML"
         )
-        
+
         # Clear context
         context.user_data.pop('upload_topic', None)
         context.user_data.pop('upload_lang', None)
-        
-        return ConversationHandler.END
-        
-    except Exception as e:
-        await update.message.reply_text(f"? Error saving content: {e}")
-        print(f"Landing upload error: {e}")
+
         return ConversationHandler.END
 
-        
     except Exception as e:
-        await update.message.reply_text(f"❌ Error saving file: {e}")
+        await update.message.reply_text(f"❌ Error saving content: {e}")
         print(f"Landing upload error: {e}")
         return ConversationHandler.END
 
@@ -329,8 +326,11 @@ async def edit_price_value_received(update: Update, context: ContextTypes.DEFAUL
     # Update database
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(Settings).where(Settings.id == 1))
-        settings = result.scalar_one()
-        
+        settings = result.scalar_one_or_none()
+        if not settings:
+            settings = Settings(id=1)
+            session.add(settings)
+
         if price_type == "individual":
             settings.individual_price = new_price
         else:
@@ -512,7 +512,7 @@ async def admin_propose_start(update: Update, context: ContextTypes.DEFAULT_TYPE
             return ConversationHandler.END
         
         context.user_data['negotiate_req_id'] = req_id
-        await query.message.reply_text("?? Enter alternative time/proposal:")
+        await query.message.reply_text("💬 Enter alternative time/proposal:")
         return "ADMIN_PROPOSE"
 
 async def admin_propose_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
