@@ -32,6 +32,7 @@ def main():
     
     consult_conv = ConversationHandler(
         entry_points=[MessageHandler(booking_trigger, consultation.start_consultation)],
+        allow_reentry=True,
         states={
             consultation.TYPE_SELECT: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND & ~home_filter, consultation.type_selected)
